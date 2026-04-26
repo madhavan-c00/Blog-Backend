@@ -1,0 +1,7 @@
+node_modules/
+.env
+output/
+error_log.txt
+*.mp3
+*.srt
+.DS_Store
