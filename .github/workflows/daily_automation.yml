@@ -27,6 +27,8 @@ jobs:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      # Opt into Node 24 for future-proofing
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout Repository
@@ -35,25 +37,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22' # Using Node 22 for stability and avoiding deprecation
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install Dependencies
-        run: |
-          cd backend
-          npm install
+        run: npm install
 
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
 
       - name: Run Automation Phase
         run: |
-          cd backend
           HOUR=$(date +%H)
-          MINUTE=$(date +%M)
-          
-          # Determine batch based on cron time or manual input
           PHASE="${{ github.event.inputs.batch }}"
           
           if [ -z "$PHASE" ]; then
