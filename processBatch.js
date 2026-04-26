@@ -159,7 +159,8 @@ async function processBatch() {
     }
   }
 
-  // 2. Generate ONE Video for the entire batch
+  // 2. Generate ONE Video for the entire batch (Now handled by processBatchReels.js)
+  /*
   let reelData = null;
   try {
     reelData = await generateBatchReel(processedJobs, batchId);
@@ -172,6 +173,7 @@ async function processBatch() {
   } catch (err) {
     console.error("   ❌ Failed to generate Batch Reel");
   }
+  */
 
   console.log(`✅ ${batchId} processing complete! Data updated in individual docs.`);
 }

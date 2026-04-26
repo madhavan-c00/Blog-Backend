@@ -147,8 +147,11 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
 }
 
 async function processBatch() {
+    const batchName = process.argv[2] || "batch_1";
     const today = new Date().toISOString().split('T')[0];
-    const batchName = "batch_1";
+    
+    console.log(`🚀 [REEL] Starting Reel for ${batchName} on ${today}...`);
+    
     const batchRef = collection(db, "daily_batches", today, batchName);
     const snap = await getDocs(batchRef);
     const jobs = [];
