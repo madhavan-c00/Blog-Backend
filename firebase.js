@@ -5,13 +5,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY?.trim(),
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN?.trim(),
-  projectId: process.env.FIREBASE_PROJECT_ID?.trim(),
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET?.trim(),
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID?.trim(),
-  appId: process.env.FIREBASE_APP_ID?.trim(),
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID?.trim()
+  apiKey: process.env.FIREBASE_API_KEY?.replace(/[\r\n]/g, '').trim(),
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN?.replace(/[\r\n]/g, '').trim(),
+  projectId: process.env.FIREBASE_PROJECT_ID?.replace(/[\r\n]/g, '').trim(),
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET?.replace(/[\r\n]/g, '').trim(),
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID?.replace(/[\r\n]/g, '').trim(),
+  appId: process.env.FIREBASE_APP_ID?.replace(/[\r\n]/g, '').trim(),
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID?.replace(/[\r\n]/g, '').trim()
 };
 
 // Initialize Firebase

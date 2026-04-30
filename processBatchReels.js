@@ -165,9 +165,23 @@ async function processBatch() {
         process.exit(1);
     }
 
-    // ✅ Download background video from URL if not present (for CI/GitHub Actions)
-    const videoTemplate = path.join(process.cwd(), "background_video.mp4");
-    if (!fs.existsSync(videoTemplate)) {
+    // ✅ Resolve background video: check local file first, then CI-downloaded copy, then download from URL
+    const localVideoName = "YouCut_20260426_205508453.mp4"; // Your local dev video
+    const ciVideoName = "background_video.mp4";             // Downloaded by CI pipeline
+    const localVideoPath = path.join(process.cwd(), localVideoName);
+    const ciVideoPath = path.join(process.cwd(), ciVideoName);
+
+    let videoTemplate;
+    if (fs.existsSync(localVideoPath)) {
+        // Running locally — use the actual file
+        videoTemplate = localVideoPath;
+        console.log(`🎬 Using local background video: ${localVideoName}`);
+    } else if (fs.existsSync(ciVideoPath)) {
+        // Already downloaded in a previous CI step
+        videoTemplate = ciVideoPath;
+        console.log(`🎬 Using previously downloaded background video.`);
+    } else {
+        // Neither exists — try downloading from BACKGROUND_VIDEO_URL (CI/GitHub Actions)
         const videoUrl = process.env.BACKGROUND_VIDEO_URL;
         if (!videoUrl) {
             console.error("❌ Video not found locally and BACKGROUND_VIDEO_URL env var is not set.");
@@ -176,8 +190,9 @@ async function processBatch() {
         console.log("📥 Downloading background video from URL...");
         try {
             const { data } = await axios.get(videoUrl, { responseType: 'arraybuffer' });
-            fs.writeFileSync(videoTemplate, Buffer.from(data));
+            fs.writeFileSync(ciVideoPath, Buffer.from(data));
             console.log("✅ Background video downloaded.");
+            videoTemplate = ciVideoPath;
         } catch (e) {
             console.error("❌ Failed to download background video:", e.message);
             process.exit(1);
