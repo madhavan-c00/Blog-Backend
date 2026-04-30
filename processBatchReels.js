@@ -160,12 +160,34 @@ async function processBatch() {
         if (data.processed) jobs.push(data);
     });
 
-    if (jobs.length === 0) return console.log("⚠️ No jobs.");
+    if (jobs.length === 0) {
+        console.error("❌ No processed jobs found for this batch. Did processBatch.js run first?");
+        process.exit(1);
+    }
 
-    const videoTemplate = path.join(process.cwd(), "YouCut_20260426_205508453.mp4");
-    if (!fs.existsSync(videoTemplate)) return console.error("❌ Video not found.");
+    // ✅ Download background video from URL if not present (for CI/GitHub Actions)
+    const videoTemplate = path.join(process.cwd(), "background_video.mp4");
+    if (!fs.existsSync(videoTemplate)) {
+        const videoUrl = process.env.BACKGROUND_VIDEO_URL;
+        if (!videoUrl) {
+            console.error("❌ Video not found locally and BACKGROUND_VIDEO_URL env var is not set.");
+            process.exit(1);
+        }
+        console.log("📥 Downloading background video from URL...");
+        try {
+            const { data } = await axios.get(videoUrl, { responseType: 'arraybuffer' });
+            fs.writeFileSync(videoTemplate, Buffer.from(data));
+            console.log("✅ Background video downloaded.");
+        } catch (e) {
+            console.error("❌ Failed to download background video:", e.message);
+            process.exit(1);
+        }
+    }
 
     await createBatchReel(jobs.slice(0, 5), today, batchName, videoTemplate);
 }
 
-processBatch().catch(console.error);
+processBatch().catch(err => {
+    console.error("❌ Fatal error in processBatchReels:", err.message);
+    process.exit(1);
+});
