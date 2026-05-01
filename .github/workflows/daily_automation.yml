@@ -2,10 +2,10 @@ name: Daily Job & Reel Automation
 
 on:
   schedule:
-    - cron: '30 2 * * *'   # 08:00 AM IST - Scrape & Batch
-    - cron: '30 4 * * *'   # 10:00 AM IST - Process Batch 1
-    - cron: '30 8 * * *'   # 02:00 PM IST - Process Batch 2
-    - cron: '30 11 * * *'  # 05:00 PM IST - Process Batch 3
+    - cron: '3 3 * * *'    # 08:33 AM IST - Scrape & Batch
+    - cron: '43 4 * * *'   # 10:13 AM IST - Process Batch 1
+    - cron: '39 8 * * *'   # 02:09 PM IST - Process Batch 2
+    - cron: '33 11 * * *'  # 05:03 PM IST - Process Batch 3
   workflow_dispatch:
     inputs:
       batch:
@@ -53,10 +53,10 @@ jobs:
           SCHEDULE="${{ github.event.schedule }}"
 
           if [ -z "$PHASE" ]; then
-            if   [ "$SCHEDULE" == "30 2 * * *"  ]; then PHASE="scrape";
-            elif [ "$SCHEDULE" == "30 4 * * *"  ]; then PHASE="batch_1";
-            elif [ "$SCHEDULE" == "30 8 * * *"  ]; then PHASE="batch_2";
-            elif [ "$SCHEDULE" == "30 11 * * *" ]; then PHASE="batch_3";
+            if   [ "$SCHEDULE" == "3 3 * * *"   ]; then PHASE="scrape";
+            elif [ "$SCHEDULE" == "43 4 * * *"  ]; then PHASE="batch_1";
+            elif [ "$SCHEDULE" == "39 8 * * *"  ]; then PHASE="batch_2";
+            elif [ "$SCHEDULE" == "33 11 * * *" ]; then PHASE="batch_3";
             else
               echo "❌ ERROR: Could not determine phase. Schedule='$SCHEDULE'. Aborting."
               exit 1
