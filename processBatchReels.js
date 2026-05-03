@@ -13,7 +13,7 @@ dotenv.config();
 async function generateTikTokAudioSegment(text, outputPath) {
     const res = await axios.post('https://tiktok-tts.weilnet.workers.dev/api/generation', {
         text: text.substring(0, 300),
-        voice: "en_us_001"
+        voice: "en_us_006"
     });
     if (res.data?.data) {
         fs.writeFileSync(outputPath, Buffer.from(res.data.data, 'base64'));
@@ -129,7 +129,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
     const finalVideoPath = path.join(process.cwd(), "output", "reels", `${batchName}_${date}_telegram_reel.mp4`);
 
     console.log(`🎬 Compiling Telegram Ready Reel...`);
-    const cmd = `ffmpeg -y -i "${videoTemplatePath}" -i "${finalAudioPath}" -shortest -vf "subtitles='${escapedSrtPath}':force_style='FontSize=14,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=1,Alignment=2'" -map 0:v -map 1:a -c:v libx264 -preset fast "${finalVideoPath}"`;
+    const cmd = `ffmpeg -y -i "${videoTemplatePath}" -i "${finalAudioPath}" -shortest -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,subtitles='${escapedSrtPath}':force_style='FontSize=16,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,Alignment=2'" -map 0:v -map 1:a -c:v libx264 -preset fast "${finalVideoPath}"`;
     execSync(cmd, { stdio: 'inherit' });
     
     // 7. Send to Telegram
@@ -166,7 +166,7 @@ async function processBatch() {
     }
 
     // ✅ Resolve background video: check local file first, then CI-downloaded copy, then download from URL
-    const localVideoName = "YouCut_20260426_205508453.mp4"; // Your local dev video
+    const localVideoName = "Final_Video_Silent.mp4"; // Your preferred local dev video
     const ciVideoName = "background_video.mp4";             // Downloaded by CI pipeline
     const localVideoPath = path.join(process.cwd(), localVideoName);
     const ciVideoPath = path.join(process.cwd(), ciVideoName);
