@@ -82,8 +82,9 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
     // 2. Jobs
     for (let i = 0; i < jobs.length; i++) {
         const j = jobs[i];
-        const jobText = `${j.company} is hiring for ${j.title} in ${j.location || 'India'}`;
-        const srtText = `${j.company} hiring for\n${j.title}\n${j.location || 'India'}`;
+        const city = j.location ? j.location.split(',')[0].trim() : 'India';
+        const jobText = `${j.company} is hiring for ${j.title} in ${city}`;
+        const srtText = `${j.company} hiring for\n${j.title}\n${city}`;
         
         const rawPath = path.join(outputDir, `job_${i}_raw.mp3`);
         const procPath = path.join(outputDir, `job_${i}.mp3`);
