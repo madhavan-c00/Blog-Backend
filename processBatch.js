@@ -143,6 +143,10 @@ async function processBatch() {
   // 1. Process Individual Web Content
   const processedJobs = [];
   for (const job of jobs) {
+    if (job.processed) {
+      console.log(`   ⏭️ Skipping: ${job.title} (Already Processed)`);
+      continue;
+    }
     try {
       const webContent = await generateContent(job);
       const jobData = { ...job, webContent, processed: true, processedAt: new Date().toISOString() };

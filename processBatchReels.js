@@ -14,7 +14,7 @@ async function generateTikTokAudioSegment(text, outputPath) {
     const res = await axios.post('https://tiktok-tts.weilnet.workers.dev/api/generation', {
         text: text.substring(0, 300),
         voice: "en_us_006"
-    });
+    }, { timeout: 30000 }); // 30s timeout
     if (res.data?.data) {
         fs.writeFileSync(outputPath, Buffer.from(res.data.data, 'base64'));
         return true;
@@ -50,7 +50,8 @@ async function sendToTelegram(videoPath, caption) {
         const res = await axios.post(`https://api.telegram.org/bot${token}/sendVideo`, form, {
             headers: { ...form.getHeaders() },
             maxContentLength: Infinity,
-            maxBodyLength: Infinity
+            maxBodyLength: Infinity,
+            timeout: 60000 // 60s timeout for video upload
         });
 
         if (res.data?.ok) {
@@ -76,7 +77,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
     const hookAudioRaw = path.join(outputDir, "hook_raw.mp3");
     const hookAudioProcessed = path.join(outputDir, "hook.mp3");
     await generateTikTokAudioSegment(hook, hookAudioRaw);
-    execSync(`ffmpeg -y -i "${hookAudioRaw}" -af "atempo=0.95" "${hookAudioProcessed}"`, { stdio: 'ignore' });
+    execSync(`ffmpeg -y -i "${hookAudioRaw}" -af "atempo=0.95" "${hookAudioProcessed}"`, { stdio: 'ignore', timeout: 60000 });
     segments.push({ text: hook, audio: hookAudioProcessed, duration: getAudioDuration(hookAudioProcessed) });
 
     // 2. Jobs
@@ -90,7 +91,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
         const procPath = path.join(outputDir, `job_${i}.mp3`);
         
         await generateTikTokAudioSegment(jobText, rawPath);
-        execSync(`ffmpeg -y -i "${rawPath}" -af "atempo=0.95" "${procPath}"`, { stdio: 'ignore' });
+        execSync(`ffmpeg -y -i "${rawPath}" -af "atempo=0.95" "${procPath}"`, { stdio: 'ignore', timeout: 60000 });
         segments.push({ text: srtText, audio: procPath, duration: getAudioDuration(procPath) });
     }
 
@@ -98,7 +99,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
     const ctaAudioRaw = path.join(outputDir, "cta_raw.mp3");
     const ctaAudioProcessed = path.join(outputDir, "cta.mp3");
     await generateTikTokAudioSegment(cta, ctaAudioRaw);
-    execSync(`ffmpeg -y -i "${ctaAudioRaw}" -af "atempo=0.95" "${ctaAudioProcessed}"`, { stdio: 'ignore' });
+    execSync(`ffmpeg -y -i "${ctaAudioRaw}" -af "atempo=0.95" "${ctaAudioProcessed}"`, { stdio: 'ignore', timeout: 60000 });
     segments.push({ text: cta, audio: ctaAudioProcessed, duration: getAudioDuration(ctaAudioProcessed) });
 
     // 4. Concat
@@ -106,7 +107,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
     const concatContent = segments.map(s => `file '${s.audio.replace(/\\/g, '/')}'`).join('\n');
     fs.writeFileSync(concatListPath, concatContent);
     const finalAudioPath = path.join(outputDir, "final_audio.mp3");
-    execSync(`ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -c copy "${finalAudioPath}"`, { stdio: 'ignore' });
+    execSync(`ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -c copy "${finalAudioPath}"`, { stdio: 'ignore', timeout: 120000 });
 
     // 5. SRT
     let currentTime = 0;
@@ -131,7 +132,7 @@ async function createBatchReel(jobs, date, batchName, videoTemplatePath) {
 
     console.log(`🎬 Compiling Telegram Ready Reel...`);
     const cmd = `ffmpeg -y -i "${videoTemplatePath}" -i "${finalAudioPath}" -shortest -vf "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,subtitles='${escapedSrtPath}':force_style='FontSize=16,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1,Outline=2,Shadow=1,Alignment=2'" -map 0:v -map 1:a -c:v libx264 -preset fast "${finalVideoPath}"`;
-    execSync(cmd, { stdio: 'inherit' });
+    execSync(cmd, { stdio: 'inherit', timeout: 600000 }); // 10 minute timeout for final video render
     
     // 7. Send to Telegram
     const caption = `🚀 Batch Reel for ${date} (${batchName})\nJobs included: ${jobs.length}`;
@@ -190,7 +191,10 @@ async function processBatch() {
         }
         console.log("📥 Downloading background video from URL...");
         try {
-            const { data } = await axios.get(videoUrl, { responseType: 'arraybuffer' });
+            const { data } = await axios.get(videoUrl, { 
+                responseType: 'arraybuffer',
+                timeout: 120000 // 2 min timeout for video download
+            });
             fs.writeFileSync(ciVideoPath, Buffer.from(data));
             console.log("✅ Background video downloaded.");
             videoTemplate = ciVideoPath;
